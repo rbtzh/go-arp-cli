@@ -5,39 +5,24 @@ import (
 	"fmt"
 )
 
-func GetLocalInterface() net.Interface {
+func ChooseIP() (net.Interface, net.Addr) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		fmt.Print("Can't get Interfaces")
 	}
 	for k, v := range interfaces {
-		fmt.Println(k, "Name:", v.Name, "HardwareAddr" ,v.HardwareAddr)
+		fmt.Printf("%-2v name: %-10v MAC_Address: %v\n", k, v.Name, v.HardwareAddr)		
 	}
 	s := 0
 	fmt.Printf("Which interface to use: ")
 	fmt.Scanln(&s)
-	return interfaces[s]
-}
 
-func GetLocalIP() (net.IP, error) {
-    var ips []net.IP
-    addresses, err := net.InterfaceAddrs()
-    if err != nil {
-        return nil, err
-    }
-
-    for _, addr := range addresses {
-        if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-            if ipnet.IP.To4() != nil {
-                ips = append(ips, ipnet.IP)
-            }
-        }
-    }
-	for k, v := range ips {
-		fmt.Println(k, "k:", v, "v:" ,v)
+	addrs,_ := interfaces[s].Addrs()
+	for k,v := range addrs{
+		fmt.Printf("%-2v IP_Address: %v\n", k, v)
 	}
-	s := 0
+	ss := 0
 	fmt.Printf("Which ip to use: ")
-	fmt.Scanln(&s)
-	return ips[s], nil
+	fmt.Scanln(&ss)
+	return interfaces[s], addrs[ss]
 }

@@ -52,6 +52,8 @@ func SendArpRequest(netInterface net.Interface, targetIp string, localIP net.IP)
 	if err != nil {
 		fmt.Printf("error writing packet data: %v", err)
 		return
+	} else {
+		fmt.Println("ARP sent successfully, waiting for response")
 	}
 }
 
