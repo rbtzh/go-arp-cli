@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
-	"strings"
 )
 
 var (
@@ -17,8 +15,7 @@ func main() {
 	listenReadyChan := make(chan bool)
 	targetIp := *flagTarget
 
-	netInterface, netAddr := ChooseIP()
-	netIP := net.ParseIP(strings.Split(netAddr.String(), "/")[0])
+	netInterface, netIP := ChooseIP()
 
 	//start listening
 	go ListenArpReply(netInterface, targetIp, listenChan, listenReadyChan)
