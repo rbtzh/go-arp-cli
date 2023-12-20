@@ -9,12 +9,13 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-func SendArpRequest(netInterface net.Interface, targetIp string, localIP net.IP){
+func SendArpRequest(netInterface net.Interface, targetIp string, localIP net.IP, listenReadyChan chan bool) {
+	<-listenReadyChan
 	// Open the device for capturing
 	handle, err := pcap.OpenLive(netInterface.Name, 1600, true, pcap.BlockForever)
 	if err != nil {
 		fmt.Printf("error opening device: %v", err)
-		return 
+		return
 	}
 	defer handle.Close()
 
@@ -44,7 +45,7 @@ func SendArpRequest(netInterface net.Interface, targetIp string, localIP net.IP)
 		ethernetLayer, arpLayer)
 	if err != nil {
 		fmt.Printf("error serializing layers: %v", err)
-		return 
+		return
 	}
 
 	// Send the packet
@@ -57,21 +58,22 @@ func SendArpRequest(netInterface net.Interface, targetIp string, localIP net.IP)
 	}
 }
 
-func ListenArpReply(netInterface net.Interface, targetIP string, listenChan chan string){
+func ListenArpReply(netInterface net.Interface, targetIP string, listenChan chan string, listenReadyChan chan bool) {
 	// Set up pcap packet capture
 	handle, err := pcap.OpenLive(netInterface.Name, 65536, true, pcap.BlockForever)
 	if err != nil {
-		return 
+		return
 	}
 	defer handle.Close()
 
 	// Set filter to capture only ARP packets
 	err = handle.SetBPFFilter("arp")
 	if err != nil {
-		return 
+		return
 	}
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	listenReadyChan <- true
 	for packet := range packetSource.Packets() {
 		arpLayer := packet.Layer(layers.LayerTypeARP)
 		if arpLayer != nil {
@@ -81,7 +83,7 @@ func ListenArpReply(netInterface net.Interface, targetIP string, listenChan chan
 			if arp.Operation == layers.ARPReply && net.IP(arp.SourceProtAddress).String() == targetIP {
 				// Return the MAC address
 				listenChan <- net.HardwareAddr(arp.SourceHwAddress).String()
-				return 
+				return
 			}
 		}
 	}
