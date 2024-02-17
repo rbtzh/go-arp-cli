@@ -1,4 +1,4 @@
-module zhaoyanbo.com/gopak
+module github.com/rbtzh/go-arp-cli
 
 go 1.21.1
 
